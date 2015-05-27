@@ -2,6 +2,7 @@ package com.girlsleep.giser.girlsleep;
 
         import android.app.Service;
         import android.content.Intent;
+        import android.location.Location;
         import android.media.MediaPlayer;
         import android.os.Handler;
         import android.os.IBinder;
@@ -10,6 +11,10 @@ package com.girlsleep.giser.girlsleep;
         import android.widget.Toast;
 
         import java.io.DataOutputStream;
+        import java.io.IOException;
+        import java.net.MalformedURLException;
+        import java.net.URL;
+        import java.net.URLConnection;
         import java.text.SimpleDateFormat;
         import java.util.Calendar;
         import java.util.Date;
@@ -34,19 +39,20 @@ public class MyService extends Service {
     }
 
     Handler handler = new Handler();
-    Runnable runnable = new Runnable() {
+                Runnable runnable = new Runnable() {
 
-        @Override
-        public void run() {
-            // handler自带方法实现定时器
-            try {
+                    @Override
+                    public void run() {
+                        // handler自带方法实现定时器
+                        try {
 
                 handler.postDelayed(runnable, TIME); //每隔1s执行
 
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
                 Date curDate   =   new   Date(System.currentTimeMillis());//获取当前时间
-                String   str   =   df.format(curDate);
+                        //    Date curDate   = getWebTime();
+                                    String   str   =   df.format(curDate);
 
                 Date d2 = df.parse(str);//当前时间
                 String days = str.split(" ")[0];
@@ -71,12 +77,9 @@ public class MyService extends Service {
 
                 long diff = d2.getTime() - d1.getTime();
 
-                long dis = -1000*3600*6;//解决0点时候的 夜晚也开机
-                if(diff>0||diff<dis) {
-                    Toast.makeText(MyService.this, "宝妈，该睡觉了哦，还有5秒自动关机！！！", Toast.LENGTH_SHORT).show();
-
-                    SystemClock.sleep(5000);
-
+                long dis = -1000*3600*6;//解决0点时候的
+                long hournow = d2.getHours();
+                if(diff>0||hournow<7) {
                     Process process = Runtime.getRuntime().exec("su");
                     DataOutputStream out = new DataOutputStream(
                             process.getOutputStream());
@@ -104,6 +107,31 @@ public class MyService extends Service {
             }
         }
     };
+
+    public  Date getWebTime() throws Exception {
+        URL url; Date date = null;
+        try {
+            url = new URL("http://www.baidu.com");
+            URLConnection uc = url.openConnection();// 生成连接对象
+            uc.connect(); // 发出连接
+            long ld = uc.getDate(); // 取得网站日期时间
+             date = new Date(ld); // 转换为标准时间对象
+            // 分别取得时间中的小时，分钟和秒，并输出
+            Log.d("multicast",
+                    date + ", " + date.getHours() + "时" + date.getMinutes()
+                            + "分" + date.getSeconds() + "秒");
+        } catch (MalformedURLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }// 取得资源对象
+        catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+       return date;
+    }
+
+
 
     @Override
     public void onDestroy() {

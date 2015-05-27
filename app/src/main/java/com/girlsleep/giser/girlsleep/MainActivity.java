@@ -17,12 +17,6 @@ package com.girlsleep.giser.girlsleep;
             super.onCreate(savedInstanceState);
             setContentView(R.layout.main);
 
-//            buttonStart = (Button) findViewById(R.id.buttonStart);
-//            buttonStop = (Button) findViewById(R.id.buttonStop);
-//
-//            buttonStart.setOnClickListener(this);
-//            buttonStop.setOnClickListener(this);
-
             Intent intent = new Intent(Intent.ACTION_MAIN);
             intent.addCategory(Intent.CATEGORY_HOME);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
