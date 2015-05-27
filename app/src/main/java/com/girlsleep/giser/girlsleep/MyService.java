@@ -5,6 +5,7 @@ package com.girlsleep.giser.girlsleep;
         import android.media.MediaPlayer;
         import android.os.Handler;
         import android.os.IBinder;
+        import android.os.SystemClock;
         import android.util.Log;
         import android.widget.Toast;
 
@@ -26,11 +27,8 @@ public class MyService extends Service {
 
     @Override
     public void onCreate() {
-        Toast.makeText(this, "My Service created", Toast.LENGTH_LONG).show();
         Log.i(TAG, "onCreate");
-
-
-
+        handler.postDelayed(runnable, TIME); //每隔1s执行
 //        player = MediaPlayer.create(this, R.raw.braincandy);
 //        player.setLooping(false);
     }
@@ -42,7 +40,8 @@ public class MyService extends Service {
         public void run() {
             // handler自带方法实现定时器
             try {
-                handler.postDelayed(this, TIME);
+
+                handler.postDelayed(runnable, TIME); //每隔1s执行
 
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -51,6 +50,15 @@ public class MyService extends Service {
 
                 Date d2 = df.parse(str);//当前时间
                 String days = str.split(" ")[0];
+
+                //判断监听的时间
+                Date d0 = df.parse(days+" 22:50:00");
+                long dis0 = -1000*3600*6;//解决0点时候的 夜晚也开机
+                long diff2 = d2.getTime() - d0.getTime();
+                if(diff2>0||diff2<dis0) {
+                   TIME = 1000*5;//5 秒 监听一次
+                }
+                else   TIME = 1000*60*5;//5分钟 监听一次
 
                 //星期
                 Calendar c = Calendar.getInstance();
@@ -63,9 +71,12 @@ public class MyService extends Service {
 
                 long diff = d2.getTime() - d1.getTime();
 
-                if(diff>0) {
-                    //Toast.makeText(MainActivity.this, "亲，该睡觉了哦！！！", Toast.LENGTH_SHORT).show();
-                    Toast.makeText(MyService.this, "shut down", Toast.LENGTH_SHORT).show();
+                long dis = -1000*3600*6;//解决0点时候的 夜晚也开机
+                if(diff>0||diff<dis) {
+                    Toast.makeText(MyService.this, "宝妈，该睡觉了哦，还有5秒自动关机！！！", Toast.LENGTH_SHORT).show();
+
+                    SystemClock.sleep(5000);
+
                     Process process = Runtime.getRuntime().exec("su");
                     DataOutputStream out = new DataOutputStream(
                             process.getOutputStream());
@@ -75,7 +86,16 @@ public class MyService extends Service {
                 }
                 else
                 {
-                    Toast.makeText(MyService.this, "ok", Toast.LENGTH_LONG).show();
+                    //提醒
+                    long mini = diff/1000/60;//分钟
+                    if(mini>-3)
+                    {
+                        if(mini>0)
+                        Toast.makeText(MyService.this, "亲，还有"+String.valueOf(-mini)+"分钟关机！", Toast.LENGTH_SHORT).show();
+                        else Toast.makeText(MyService.this, "亲，还有"+String.valueOf(-diff/1000)+"秒关机！", Toast.LENGTH_SHORT).show();
+                    }
+
+                   // Toast.makeText(MyService.this, "运行中", Toast.LENGTH_SHORT).show();
                 }
             } catch (Exception e) {
                 // TODO Auto-generated catch block
@@ -85,20 +105,13 @@ public class MyService extends Service {
         }
     };
 
-
     @Override
     public void onDestroy() {
-        Toast.makeText(this, "My Service Stoped", Toast.LENGTH_LONG).show();
         Log.i(TAG, "onDestroy");
-        player.stop();
     }
 
     @Override
     public void onStart(Intent intent, int startid) {
-        Toast.makeText(this, "My Service Start", Toast.LENGTH_LONG).show();
         Log.i(TAG, "onStart");
-        handler.postDelayed(runnable, TIME); //每隔1s执行
-
-        //player.start();
     }
 }
