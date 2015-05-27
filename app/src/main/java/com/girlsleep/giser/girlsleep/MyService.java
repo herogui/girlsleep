@@ -10,6 +10,7 @@ package com.girlsleep.giser.girlsleep;
 
         import java.io.DataOutputStream;
         import java.text.SimpleDateFormat;
+        import java.util.Calendar;
         import java.util.Date;
 
 public class MyService extends Service {
@@ -50,7 +51,15 @@ public class MyService extends Service {
 
                 Date d2 = df.parse(str);//当前时间
                 String days = str.split(" ")[0];
-                Date d1 = df.parse(days+" 11:19:00");
+
+                //星期
+                Calendar c = Calendar.getInstance();
+                int day = c.get(Calendar.DAY_OF_WEEK);
+                if(day<2) day = 7;
+                else  day = day-1;
+
+                Date d1 = df.parse(days+" 23:00:00");
+                if(day==5||day==6)  d1 = df.parse(days+" 23:58:59");
 
                 long diff = d2.getTime() - d1.getTime();
 
